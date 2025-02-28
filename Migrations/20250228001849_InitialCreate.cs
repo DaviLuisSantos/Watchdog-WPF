@@ -11,7 +11,7 @@ namespace Watchdog.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Process",
+                name: "Processo",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -21,7 +21,7 @@ namespace Watchdog.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Process", x => x.Id);
+                    table.PrimaryKey("PK_Processo", x => x.Id);
                 });
         }
 
@@ -29,7 +29,7 @@ namespace Watchdog.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Process");
+                name: "Processo");
         }
     }
 }

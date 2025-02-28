@@ -9,9 +9,10 @@ using System.Threading.Tasks;
 
 namespace Watchdog.Models
 {
-    public partial class Process:ObservableObject
+    public partial class Processo:ObservableObject
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [property:Column(TypeName ="varchar(80)")]
         [ObservableProperty]
