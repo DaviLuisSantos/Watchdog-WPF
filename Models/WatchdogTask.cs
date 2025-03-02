@@ -1,82 +1,49 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Watchdog.Models;
 
-public partial class WatchdogTask : ObservableObject
+public abstract partial class WatchdogTask : ObservableObject 
 {
-    [ObservableProperty]
-    private string _url = string.Empty, _status = "Stopped";
-    [ObservableProperty]
-    private int _interval = 10;
-    [ObservableProperty]
-    private bool _isRunning = false;
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
-    private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+    [Required]
+    [ObservableProperty]
+    private string _name;
 
-    public async Task Start()
+    [Required]
+    [ObservableProperty]
+    private bool _isEnabled;
+
+    [ObservableProperty]
+    private bool _isRunning;
+
+    [ObservableProperty]
+    private string _status;
+
+    public DateTime LastCheckTime { get; set; }
+    public DateTime LastSuccessTime { get; set; }
+    public DateTime LastFailureTime { get; set; }
+
+    public List<RecoveryAction> RecoveryActions { get; set; } = new List<RecoveryAction>();
+
+    public abstract Task<bool> CheckHealth();
+
+    public virtual string GetDetails()
     {
-        if (IsRunning) return;
-
-        IsRunning = true;
-        Status = "Running";
-        _cancellationTokenSource = new CancellationTokenSource();
-
-        while (!_cancellationTokenSource.Token.IsCancellationRequested)
-        {
-            try
-            {
-                using (HttpClient client = new HttpClient())
-                {
-                    var response = await client.GetAsync(Url, _cancellationTokenSource.Token);
-                    response.EnsureSuccessStatusCode(); // Lança exceção se não for 200-299
-                    Status = $"OK - {response.StatusCode}";
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                Status = $"Error: {ex.Message}";
-            }
-            catch (TaskCanceledException)
-            {
-                // Task was cancelled, exit loop
-                Status = "Stopped";
-                break;
-            }
-            catch (Exception ex)
-            {
-                Status = $"Unexpected Error: {ex.Message}";
-            }
-
-            try
-            {
-                await Task.Delay(Interval * 1000, _cancellationTokenSource.Token); // Converte segundos para milissegundos
-            }
-            catch (TaskCanceledException)
-            {
-                // Task was cancelled during the delay, exit loop
-                Status = "Stopped";
-                break;
-            }
-        }
-        IsRunning = false;
-
-        if (Status != "Stopped")
-        {
-            Status = "Stopped";
-        }
+        return string.Empty;
     }
 
-    public void Stop()
+    public async Task ExecuteRecoveryActions()
     {
-        _cancellationTokenSource?.Cancel();
-        IsRunning = false;
-        Status = "Stopping...";
+        foreach (var action in RecoveryActions)
+        {
+            await action.Execute();
+        }
     }
-
 }

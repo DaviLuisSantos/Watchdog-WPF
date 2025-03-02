@@ -7,8 +7,16 @@ using System.Threading.Tasks;
 using Watchdog.Models;
 namespace Watchdog.Data;
 
-class AppDbContext:DbContext
+public class AppDbContext : DbContext
 {
+    public DbSet<WatchdogTask> WatchdogTasks { get; set; }
+    public DbSet<HttpWatchdogTask> HttpWatchdogTasks { get; set; }
+    public DbSet<UdpWatchdogTask> UdpWatchdogTasks { get; set; }
+    public DbSet<RecoveryAction> RecoveryActions { get; set; }
+    public DbSet<RestartProcessAction> RestartProcessActions { get; set; }
+    public DbSet<RestartServiceAction> RestartServiceActions { get; set; }
+    public DbSet<ExecuteCommandAction> ExecuteCommandActions { get; set; }
+
     public AppDbContext() { }
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -19,6 +27,29 @@ class AppDbContext:DbContext
         {
             optionsBuilder.UseSqlite("Data Source=database.db");
         }
+
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<WatchdogTask>()
+            .HasDiscriminator<string>("TaskType")
+            .HasValue<HttpWatchdogTask>("HTTP")
+            .HasValue<UdpWatchdogTask>("UDP");
+
+        modelBuilder.Entity<RecoveryAction>()
+            .HasDiscriminator<string>("ActionType")
+            .HasValue<RestartProcessAction>("RestartProcess")
+            .HasValue<RestartServiceAction>("RestartService")
+            .HasValue<ExecuteCommandAction>("ExecuteCommand");
+
+        modelBuilder.Entity<WatchdogTask>()
+            .HasMany(w => w.RecoveryActions)
+            .WithOne(r => r.WatchdogTask)
+            .HasForeignKey(r => r.WatchdogTaskId);
+
+        base.OnModelCreating(modelBuilder);
+
 
     }
 }

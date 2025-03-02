@@ -7,11 +7,8 @@
         xmlns:vm="clr-namespace:Watchdog.ViewModels"
         xmlns:conv="clr-namespace:Watchdog.Converters"
         mc:Ignorable="d"
+        PresentationTraceSources.TraceLevel="High"
         Title="Watchdog" Height="450" Width="800">
-
-    <Window.DataContext>
-        <vm:MainViewModel/>
-    </Window.DataContext>
 
     <Window.Resources>
         <conv:InverseBooleanConverter x:Key="InverseBoolConverter" />
@@ -20,24 +17,59 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Add New Watchdog Task -->
-        <StackPanel Orientation="Horizontal" Margin="10">
-            <TextBlock Text="URL:" Margin="0,0,5,0" VerticalAlignment="Center"/>
-            <TextBox Width="200" Text="{Binding NewUrl, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,5,0"/>
-            <TextBlock Text="Interval (seconds):" Margin="5,0,5,0" VerticalAlignment="Center"/>
-            <TextBox Width="50" Text="{Binding NewInterval, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,5,0"/>
-            <Button Content="Add" Command="{Binding AddWatchdogTaskCommand}" Padding="5"/>
-        </StackPanel>
+        <!-- HTTP Task Creation -->
+        <GroupBox Header="Add HTTP Watchdog Task" Margin="5">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="URL:" Margin="5"/>
+                <TextBox Width="150" Text="{Binding NewHttpUrl, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                <TextBlock Text="Interval (s):" Margin="5"/>
+                <TextBox Width="50" Text="{Binding NewHttpInterval, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                <TextBlock Text="Method:" Margin="5"/>
+                <ComboBox Width="70" ItemsSource="{Binding Source={x:Static vm:MainViewModel.AvailableHttpMethods}}" SelectedItem="{Binding NewHttpMethod, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                <Button Content="Add HTTP" Command="{Binding AddHttpWatchdogTaskCommand}" Margin="5"/>
+            </StackPanel>
+        </GroupBox>
 
-        <!-- List of Watchdog Tasks -->
-        <ListView Grid.Row="1" ItemsSource="{Binding WatchdogTasks}" Margin="10">
+        <!-- UDP Task Creation -->
+        <GroupBox Header="Add UDP Watchdog Task" Margin="5" Grid.Row="1">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Host:" Margin="5"/>
+                <TextBox Width="100" Text="{Binding NewUdpHost, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                <TextBlock Text="Port:" Margin="5"/>
+                <TextBox Width="50" Text="{Binding NewUdpPort, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                <TextBlock Text="Send Data:" Margin="5"/>
+                <TextBox Width="80" Text="{Binding NewUdpSendData, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                <TextBlock Text="Expected Response:" Margin="5"/>
+                <TextBox Width="80" Text="{Binding NewUdpExpectedResponse, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                <TextBlock Text="Timeout (s):" Margin="5"/>
+                <TextBox Width="40" Text="{Binding NewUdpTimeout, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                <Button Content="Add UDP" Command="{Binding AddUdpWatchdogTaskCommand}" Margin="5"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Task List -->
+        <ListView Grid.Row="2" ItemsSource="{Binding WatchdogTasks}" SelectedItem="{Binding SelectedTask}" Margin="5">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="URL" Width="200" DisplayMemberBinding="{Binding Url}"/>
-                    <GridViewColumn Header="Interval (s)" Width="80" DisplayMemberBinding="{Binding Interval}"/>
+                    <GridViewColumn Header="Name" Width="100" DisplayMemberBinding="{Binding Name}"/>
+                    <GridViewColumn Header="Type" Width="80">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource TaskTypeConverter}}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Details" Width="200">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource TaskDetailsConverter}}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                     <GridViewColumn Header="Status" Width="150" DisplayMemberBinding="{Binding Status}"/>
                     <GridViewColumn Width="150">
                         <GridViewColumn.CellTemplate>
