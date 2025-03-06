@@ -12,11 +12,9 @@ public abstract partial class WatchdogTask : ObservableObject
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    [Required]
     [ObservableProperty]
     private string _name;
 
-    [Required]
     [ObservableProperty]
     private bool _isEnabled;
 

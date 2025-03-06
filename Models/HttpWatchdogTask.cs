@@ -7,13 +7,11 @@ namespace Watchdog.Models;
 
 public partial class HttpWatchdogTask : WatchdogTask
 {
-    [Required]
     [ObservableProperty]
     private string _url;
 
-    [Required]
     [ObservableProperty]
-    private System.Net.Http.HttpMethod _httpRestMethod;
+    private ReqMethod _httpRestMethod = ReqMethod.Get;
 
     [ObservableProperty]
     private int _interval;
@@ -25,7 +23,8 @@ public partial class HttpWatchdogTask : WatchdogTask
             using (HttpClient client = new HttpClient())
             {
                 client.Timeout = TimeSpan.FromSeconds(15);
-                HttpRequestMessage request = new HttpRequestMessage(HttpRestMethod, Url);
+                HttpMethod method = new(HttpRestMethod.ToString());
+                HttpRequestMessage request = new HttpRequestMessage(method, Url);
                 var response = await client.SendAsync(request);
                 response.EnsureSuccessStatusCode();
                 LastCheckTime = DateTime.Now;
@@ -61,4 +60,12 @@ public partial class HttpWatchdogTask : WatchdogTask
     {
         return $"HTTP Watchdog: URL={Url}, Method={HttpRestMethod}";
     }
+}
+
+public enum ReqMethod
+{
+    Get,
+    Post,
+    Put,
+    Delete
 }

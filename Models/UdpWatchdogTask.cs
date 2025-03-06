@@ -8,11 +8,9 @@ namespace Watchdog.Models;
 
 public partial class UdpWatchdogTask : WatchdogTask
 {
-    [Required]
     [ObservableProperty]
     private string _host;
 
-    [Required]
     [ObservableProperty]
     private int _port;
 

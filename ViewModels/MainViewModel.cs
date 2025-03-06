@@ -10,6 +10,8 @@ using System;
 using System.Xml.Linq;
 using Watchdog.Converters;
 using static Watchdog.Models.HttpWatchdogTask;
+using System.Reflection.Metadata.Ecma335;
+using System.Net.Http;
 
 namespace Watchdog.ViewModels;
 
@@ -27,7 +29,7 @@ public partial class MainViewModel : ObservableObject
     private int _newHttpInterval = 60;
 
     [ObservableProperty]
-    private HttpMethod _newHttpMethod = HttpMethod.Get;
+    private ReqMethod _newHttpMethod = ReqMethod.Get;
 
     [ObservableProperty]
     private string _newUdpHost;
@@ -47,10 +49,11 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private WatchdogTask? _selectedTask;
 
-    public static Array AvailableHttpMethods => Enum.GetValues(typeof(HttpMethod));
-    public MainViewModel(AppDbContext context)
+    public static Array AvailableHttpMethods => Enum.GetValues(typeof(ReqMethod));
+    public MainViewModel()
     {
-        _context = context;
+        //_context = context;
+        _context = new AppDbContext();
         _cancellationTokenSource = new CancellationTokenSource();
 
         LoadWatchdogTasks();
@@ -71,16 +74,28 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async void AddHttpWatchdogTask()
     {
-        if (!string.IsNullOrWhiteSpace(NewHttpUrl))
+        try
         {
-            var newTask = new HttpWatchdogTask { Name = "HTTP Task", UrlWatchdog = NewHttpUrl, Interval = NewHttpInterval, HttpRestMethod = NewHttpMethod, IsEnabled = true };
-            _context.WatchdogTasks.Add(newTask);
-            WatchdogTasks.Add(newTask); // Adiciona à coleção para exibição imediata
+            if (!string.IsNullOrWhiteSpace(NewHttpUrl))
+            {
+                //HttpMethod reqMethod = new(NewHttpMethod.ToString());
 
-            NewHttpUrl = string.Empty;
-            NewHttpInterval = 60;
-            await _context.SaveChangesAsync();
+                var newTask = new HttpWatchdogTask { Name = "HTTP Task", Url = NewHttpUrl, Interval = NewHttpInterval, HttpRestMethod = NewHttpMethod, IsEnabled = true };
+                _context.WatchdogTasks.Add(newTask);
+                //WatchdogTasks.Add(newTask);
+
+                NewHttpUrl = string.Empty;
+                NewHttpInterval = 60;
+                await _context.SaveChangesAsync();
+                WatchdogTasks.Add(newTask);
+            }
         }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            
+        }
+        
     }
 
     [RelayCommand]
